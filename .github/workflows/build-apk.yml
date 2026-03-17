@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Prebuild Android (regenerate native project)
+      - name: Prebuild Android
         run: npx expo prebuild --platform android --clean
 
       - name: Make gradlew executable
@@ -43,20 +43,9 @@ jobs:
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
-      - name: Test autolinking command
-        run: |
-          cd android
-          echo "=== Running autolinking command ==="
-          node --no-warnings --eval "require('expo/bin/autolinking')" expo-modules-autolinking react-native-config --platform android --json 2>&1 | head -5 || echo "AUTOLINKING FAILED"
-          echo "=== which node ==="
-          which node
-          echo "=== node path ==="
-          node -e "console.log(process.execPath)"
-
       - name: Build APK
-        env:
-          NODE_OPTIONS: "--no-warnings"
-        run: cd android && ./gradlew app:assembleRelease --no-daemon --debug 2>&1 | grep -i "node\|error\|autolinking\|config" | head -80
+        working-directory: android
+        run: ./gradlew app:assembleRelease --no-daemon
 
       - name: Find APK
         id: find_apk
