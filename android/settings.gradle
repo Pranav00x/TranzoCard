@@ -51,7 +51,7 @@ if (autolinkingScript && new File(autolinkingScript).exists()) {
         "node",
         "--no-warnings",
         "--eval",
-        "require('${autolinkScript.replace('\\', '/')}')",
+        "require('${autolinkingScript.replace('\\', '/')}')",
         "expo-modules-autolinking",
         "react-native-config",
         "--platform",
