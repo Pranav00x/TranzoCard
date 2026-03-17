@@ -1,30 +1,51 @@
 pluginManagement {
   def projectRoot = rootDir.getParentFile()
+  println "DEBUG: Project root is ${projectRoot.absolutePath}"
   
   def resolvePluginPath = { String name, String rootPath ->
     try {
       def result = providers.exec {
         workingDir(new File(rootPath))
-        commandLine("node", "--print", "require.resolve('" + name + "/package.json', { paths: ['" + rootPath.replace('\\', '/') + "'] })")
+        commandLine("node", "--print", "require.resolve('" + name + "/package.json', { paths: ['" + rootPath + "'] })")
       }.standardOutput.asText.get().trim()
-      return new File(result).getParentFile().absolutePath
+      def path = new File(result).getParentFile().absolutePath
+      println "DEBUG: Resolved ${name} package to ${path}"
+      return path
     } catch (Exception e) {
+      println "DEBUG: Node resolution failed for ${name}: ${e.message}"
       def fallback = new File(rootPath, "node_modules/" + name)
-      if (fallback.exists()) return fallback.absolutePath
+      if (fallback.exists()) {
+          println "DEBUG: Fallback found for ${name} at ${fallback.absolutePath}"
+          return fallback.absolutePath
+      }
+      println "DEBUG: No fallback found for ${name}"
       return null
     }
   }
 
   def rnPluginPath = resolvePluginPath("@react-native/gradle-plugin", projectRoot.absolutePath)
   if (rnPluginPath) {
+    println "DEBUG: Including RN plugin build from ${rnPluginPath}"
     includeBuild(rnPluginPath)
   }
   
   def expoAutolinkingPath = resolvePluginPath("expo-modules-autolinking", projectRoot.absolutePath)
   if (expoAutolinkingPath) {
-    def expoPluginsPath = new File(expoAutolinkingPath, "../android/expo-gradle-plugin").absolutePath
+    // Standard Expo path resolution for the gradle plugin
+    def pkgPath = new File(projectRoot, "node_modules/expo-modules-autolinking/package.json").absolutePath
+    def expoPluginsPath = new File(pkgPath, "../android/expo-gradle-plugin").getCanonicalPath()
+    println "DEBUG: Calculated expoPluginsPath as ${expoPluginsPath}"
     if (new File(expoPluginsPath).exists()) {
+      println "DEBUG: Including Expo plugin build from ${expoPluginsPath}"
       includeBuild(expoPluginsPath)
+    } else {
+      println "DEBUG: Expo plugins path DOES NOT EXIST"
+      // Try alternative
+      def altPath = new File(expoAutolinkingPath, "android/expo-gradle-plugin").absolutePath
+      if (new File(altPath).exists()) {
+          println "DEBUG: Found alternate Expo plugins path at ${altPath}"
+          includeBuild(altPath)
+      }
     }
   }
 }
