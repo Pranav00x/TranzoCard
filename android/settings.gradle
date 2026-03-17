@@ -22,7 +22,11 @@ plugins {
   id("expo-autolinking-settings")
 }
 
-expoAutolinking.projectRoot = new File(rootDir, "..")
+expoAutolinking.projectRoot = rootDir.getParentFile()
+
+println "DEBUG: rootDir is ${rootDir.absolutePath}"
+println "DEBUG: projectRoot is ${expoAutolinking.projectRoot.absolutePath}"
+println "DEBUG: rnConfigCommand is ${expoAutolinking.rnConfigCommand}"
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
