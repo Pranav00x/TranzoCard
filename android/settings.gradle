@@ -73,15 +73,19 @@ if (autolinkingScript && new File(autolinkingScript).exists()) {
     def finalCommand = [
         "node", 
         "--no-warnings", 
-        autolinkingScript, 
+        "--eval",
+        "require('${autolinkingScript.replace('\\', '/')}')",
         "expo-modules-autolinking", 
         "react-native-config", 
         "--platform", 
         "android", 
         "--json", 
         "--project-root", 
-        projectRoot.absolutePath
+        projectRoot.absolutePath,
+        "--source-dir",
+        rootDir.absolutePath
     ]
+    println "DEBUG: Running autolinking command: ${finalCommand}"
     extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
       ex.autolinkLibrariesFromCommand(finalCommand)
     }
