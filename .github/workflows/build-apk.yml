@@ -31,14 +31,8 @@ jobs:
       - name: Accept Android SDK Licenses
         run: yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
-      - name: Install SDK platforms
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.1" 2>/dev/null || true
-
       - name: Install dependencies
         run: npm ci
-
-      - name: Clean prebuild and regenerate
-        run: npx expo prebuild --platform android --clean
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
@@ -46,46 +40,8 @@ jobs:
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
-      - name: Debug - test node from android dir
-        run: |
-          cd android
-          echo "=== Testing require.resolve from android/ ==="
-          node -e "
-            try {
-              const rn = require.resolve('react-native/package.json');
-              console.log('react-native:', rn);
-              const gp = require.resolve('@react-native/gradle-plugin/package.json', { paths: [rn] });
-              console.log('gradle-plugin:', gp);
-              const expo = require.resolve('expo/package.json');
-              console.log('expo:', expo);
-              const auto = require.resolve('expo-modules-autolinking/package.json', { paths: [expo] });
-              console.log('autolinking:', auto);
-            } catch(e) {
-              console.error('ERROR:', e.message);
-            }
-          "
-          echo "=== Testing the actual autolinking command ==="
-          node -e "
-            try {
-              const resolve = require('expo-modules-autolinking/scripts/resolveSearchPaths');
-              console.log('resolve loaded');
-            } catch(e) {
-              console.error('Autolinking script error:', e.message);
-            }
-          " || true
-          echo "=== Node version ==="
-          node --version
-          echo "=== Check expo-modules-autolinking ==="
-          ls -la ../node_modules/expo-modules-autolinking/ 2>/dev/null | head -5 || echo "NOT FOUND"
-
       - name: Build APK
-        run: |
-          cd android
-          ./gradlew app:assembleRelease --no-daemon --stacktrace 2>&1 || {
-            echo "=== BUILD FAILED - checking for node errors ==="
-            find . -name "*.log" -exec grep -l "Error\|error\|Cannot" {} \; 2>/dev/null || true
-            exit 1
-          }
+        run: cd android && ./gradlew app:assembleRelease --no-daemon
 
       - name: Find APK
         id: find_apk
