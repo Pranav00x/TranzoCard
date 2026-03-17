@@ -23,13 +23,33 @@ plugins {
 }
 
 expoAutolinking.projectRoot = rootDir.getParentFile()
+def projectRoot = expoAutolinking.projectRoot
 
 println "DEBUG: rootDir is ${rootDir.absolutePath}"
-println "DEBUG: projectRoot is ${expoAutolinking.projectRoot.absolutePath}"
-println "DEBUG: rnConfigCommand is ${expoAutolinking.rnConfigCommand}"
+println "DEBUG: projectRoot is ${projectRoot.absolutePath}"
 
-extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-  ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
+def autolinkingScript = ""
+try {
+    autolinkingScript = providers.exec {
+        workingDir(projectRoot)
+        commandLine("node", "--print", "require.resolve('expo/bin/autolinking')")
+    }.standardOutput.asText.get().trim()
+} catch (Exception e) {
+    println "DEBUG: Failed to resolve expo/bin/autolinking: ${e.message}"
+}
+
+if (autolinkingScript != "") {
+    def customCommand = expoAutolinking.rnConfigCommand.collect { 
+        it.contains("require('expo/bin/autolinking')") ? it.replace("require('expo/bin/autolinking')", "require('${autolinkingScript.replace('\\', '/')}')") : it 
+    }
+    println "DEBUG: customCommand is ${customCommand}"
+    extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+      ex.autolinkLibrariesFromCommand(customCommand)
+    }
+} else {
+    extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+      ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
+    }
 }
 expoAutolinking.useExpoModules()
 
