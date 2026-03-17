@@ -1,16 +1,17 @@
 pluginManagement {
+  def projectRoot = rootDir.getParentFile()
   def reactNativeGradlePlugin = new File(
     providers.exec {
-      workingDir(rootDir.getParentFile())
-      commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
+      workingDir(projectRoot)
+      commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [projectRoot.absolutePath] })")
     }.standardOutput.asText.get().trim()
   ).getParentFile().absolutePath
   includeBuild(reactNativeGradlePlugin)
   
   def expoPluginsPath = new File(
     providers.exec {
-      workingDir(rootDir.getParentFile())
-      commandLine("node", "--print", "require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })")
+      workingDir(projectRoot)
+      commandLine("node", "--print", "require.resolve('expo-modules-autolinking/package.json', { paths: [projectRoot.absolutePath] })")
     }.standardOutput.asText.get().trim(),
     "../android/expo-gradle-plugin"
   ).absolutePath
@@ -22,35 +23,31 @@ plugins {
   id("expo-autolinking-settings")
 }
 
-expoAutolinking.projectRoot = rootDir.getParentFile()
-def projectRoot = expoAutolinking.projectRoot
+def projectRoot = rootDir.getParentFile()
+expoAutolinking.projectRoot = projectRoot
 
-println "DEBUG: rootDir is ${rootDir.absolutePath}"
-println "DEBUG: projectRoot is ${projectRoot.absolutePath}"
+def autolinkingScript = providers.exec {
+    workingDir(projectRoot)
+    commandLine("node", "--print", "require.resolve('expo/bin/autolinking')")
+}.standardOutput.asText.get().trim()
 
-def autolinkingScript = ""
-try {
-    autolinkingScript = providers.exec {
-        workingDir(projectRoot)
-        commandLine("node", "--print", "require.resolve('expo/bin/autolinking')")
-    }.standardOutput.asText.get().trim()
-} catch (Exception e) {
-    println "DEBUG: Failed to resolve expo/bin/autolinking: ${e.message}"
+def finalCommand = [
+    "node", 
+    "--no-warnings", 
+    autolinkingScript, 
+    "expo-modules-autolinking", 
+    "react-native-config", 
+    "--platform", 
+    "android", 
+    "--json", 
+    "--project-root", 
+    projectRoot.absolutePath
+]
+
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+  ex.autolinkLibrariesFromCommand(finalCommand)
 }
 
-if (autolinkingScript != "") {
-    def customCommand = expoAutolinking.rnConfigCommand.collect { 
-        it.contains("require('expo/bin/autolinking')") ? it.replace("require('expo/bin/autolinking')", "require('${autolinkingScript.replace('\\', '/')}')") : it 
-    }
-    println "DEBUG: customCommand is ${customCommand}"
-    extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-      ex.autolinkLibrariesFromCommand(customCommand)
-    }
-} else {
-    extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-      ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
-    }
-}
 expoAutolinking.useExpoModules()
 
 rootProject.name = 'Tranzo'
