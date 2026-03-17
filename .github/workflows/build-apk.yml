@@ -35,12 +35,15 @@ jobs:
         run: npm ci
 
       - name: Make gradlew executable
-        working-directory: android
-        run: chmod +x gradlew
+        run: chmod +x android/gradlew
+
+      - name: Debug node resolution
+        run: |
+          cd android && node --print "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })" 2>&1 || true
+          cd .. && node --print "require.resolve('expo/package.json')" 2>&1 || true
 
       - name: Build APK
-        working-directory: android
-        run: ./gradlew assembleRelease --no-daemon
+        run: cd android && ./gradlew assembleRelease --no-daemon --stacktrace 2>&1
 
       - name: Find APK
         id: find_apk
