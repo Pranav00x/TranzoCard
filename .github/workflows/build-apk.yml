@@ -31,19 +31,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Install Expo CLI
+        run: npm install -g expo-cli @expo/ngrok
 
       - name: Prebuild Android
-        run: npx expo prebuild --platform android --clean
+        run: npx expo prebuild --platform android --clean --no-install
+
+      - name: Install Android deps
+        working-directory: android
+        run: chmod +x gradlew
 
       - name: Build APK
         working-directory: android
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease --no-daemon
 
       - name: Find APK
         id: find_apk
@@ -62,5 +62,5 @@ jobs:
         run: |
           curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
                -F document=@"${{ steps.find_apk.outputs.apk_path }}" \
-               -F caption="Tranzo Card APK - Build #${{ github.run_number }} (${{ github.sha }})" \
+               -F caption="Tranzo Card APK - Build #${{ github.run_number }} - $(date '+%Y-%m-%d %H:%M')" \
                "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument"
