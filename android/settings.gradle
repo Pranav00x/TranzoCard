@@ -86,6 +86,19 @@ if (autolinkingScript && new File(autolinkingScript).exists()) {
         rootDir.absolutePath
     ]
     println "DEBUG: Running autolinking command: ${finalCommand}"
+    
+    try {
+        def testExec = providers.exec {
+            workingDir(projectRoot)
+            commandLine(finalCommand)
+            ignoreExitValue = true
+        }
+        println "DEBUG: Autolinking stdout: ${testExec.standardOutput.asText.get()}"
+        println "DEBUG: Autolinking stderr: ${testExec.standardError.asText.get()}"
+    } catch (Exception e) {
+        println "DEBUG: Test execution failed: ${e.message}"
+    }
+
     extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
       ex.autolinkLibrariesFromCommand(finalCommand)
     }
