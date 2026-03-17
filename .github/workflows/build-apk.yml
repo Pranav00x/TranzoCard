@@ -8,8 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      EXPO_USE_COMMUNITY_AUTOLINKING: '1'
 
     steps:
       - name: Checkout
@@ -36,11 +34,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Clean prebuild and regenerate
+        run: npx expo prebuild --platform android --clean
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+
       - name: Build APK
-        run: cd android && ./gradlew assembleRelease --no-daemon --stacktrace 2>&1
+        run: cd android && ./gradlew app:assembleRelease --no-daemon --info 2>&1 | tail -100
 
       - name: Find APK
         id: find_apk
