@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Feather } from '@expo/vector-icons';
-import { Colors, BorderRadius } from '../constants/theme';
+import { Colors, BorderRadius, FontSize } from '../constants/theme';
 
 import HomeScreen from '../screens/HomeScreen';
 import EarnScreen from '../screens/EarnScreen';
@@ -19,56 +19,72 @@ export default function TabNavigator() {
         tabBarStyle: styles.tabBar,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.muted,
-        tabBarLabelStyle: styles.tabLabel,
+        tabBarShowLabel: false,
         tabBarIcon: ({ color, focused }) => {
           let iconName: keyof typeof Feather.glyphMap = 'home';
-          if (route.name === 'Home') iconName = 'home';
-          else if (route.name === 'EarnTab') iconName = 'trending-up';
-          else if (route.name === 'CardTab') iconName = 'credit-card';
-          else if (route.name === 'RewardsTab') iconName = 'gift';
+          let label = 'Home';
+          if (route.name === 'Home') { iconName = 'home'; label = 'Home'; }
+          else if (route.name === 'EarnTab') { iconName = 'trending-up'; label = 'Earn'; }
+          else if (route.name === 'CardTab') { iconName = 'credit-card'; label = 'Card'; }
+          else if (route.name === 'RewardsTab') { iconName = 'gift'; label = 'Rewards'; }
 
           return (
-            <View style={styles.iconContainer}>
+            <View style={styles.tabItem}>
               {focused && <View style={styles.activeIndicator} />}
-              <Feather name={iconName} size={22} color={color} strokeWidth={focused ? 2.5 : 1.5} />
+              <View style={styles.iconWrapper}>
+                <Feather name={iconName} size={22} color={color} />
+              </View>
+              <Text style={[styles.tabLabel, { color }]}>{label}</Text>
             </View>
           );
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="EarnTab" component={EarnScreen} options={{ tabBarLabel: 'Earn' }} />
-      <Tab.Screen name="CardTab" component={CardScreen} options={{ tabBarLabel: 'Card' }} />
-      <Tab.Screen name="RewardsTab" component={RewardsScreen} options={{ tabBarLabel: 'Rewards' }} />
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="EarnTab" component={EarnScreen} />
+      <Tab.Screen name="CardTab" component={CardScreen} />
+      <Tab.Screen name="RewardsTab" component={RewardsScreen} />
     </Tab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: 'rgba(15, 23, 34, 0.95)',
+    backgroundColor: 'rgba(15, 23, 34, 0.98)',
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    height: Platform.OS === 'ios' ? 85 : 65,
-    paddingBottom: Platform.OS === 'ios' ? 25 : 8,
-    paddingTop: 8,
+    height: Platform.OS === 'ios' ? 88 : 68,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 6,
+    paddingTop: 10,
+    paddingHorizontal: 4,
     position: 'absolute',
     elevation: 0,
   },
-  tabLabel: {
-    fontSize: 10,
-    fontWeight: '500',
-  },
-  iconContainer: {
+  tabItem: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 64,
     position: 'relative',
+  },
+  iconWrapper: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  tabLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   activeIndicator: {
     position: 'absolute',
-    top: -12,
-    width: 32,
-    height: 2,
-    borderRadius: 1,
+    top: -10,
+    width: 28,
+    height: 3,
+    borderRadius: 1.5,
     backgroundColor: Colors.primary,
   },
 });

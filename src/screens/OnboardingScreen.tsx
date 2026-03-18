@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Linking,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, FontSize, Spacing, BorderRadius } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
@@ -44,6 +44,14 @@ export default function OnboardingScreen({ navigation }: any) {
     }, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  const openTerms = () => {
+    Linking.openURL('https://tranzo.money/terms');
+  };
+
+  const openPrivacy = () => {
+    Linking.openURL('https://tranzo.money/privacy');
+  };
 
   return (
     <View style={styles.container}>
@@ -130,10 +138,18 @@ export default function OnboardingScreen({ navigation }: any) {
           <Text style={styles.secondaryButtonText}>Already have a Tranzo account?</Text>
         </TouchableOpacity>
 
-        <Text style={styles.terms}>
-          By continuing, you agree to our{' '}
-          <Text style={styles.termsLink}>terms of service</Text>
-        </Text>
+        <View style={styles.legalContainer}>
+          <Text style={styles.legalText}>By continuing, you agree to our</Text>
+          <View style={styles.legalLinksRow}>
+            <TouchableOpacity onPress={openTerms} activeOpacity={0.7}>
+              <Text style={styles.legalLink}>Terms of Service</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalDivider}>&</Text>
+            <TouchableOpacity onPress={openPrivacy} activeOpacity={0.7}>
+              <Text style={styles.legalLink}>Privacy Policy</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Animated.View>
     </View>
   );
@@ -242,12 +258,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xxl,
     paddingBottom: 40,
     gap: Spacing.md,
+    alignItems: 'stretch',
   },
   primaryButton: {
     backgroundColor: Colors.primary,
-    paddingVertical: Spacing.lg,
+    height: 56,
     borderRadius: BorderRadius.xl,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -261,9 +279,10 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     backgroundColor: Colors.surfaceLight,
-    paddingVertical: Spacing.lg,
+    height: 56,
     borderRadius: BorderRadius.xl,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -272,13 +291,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.foreground,
   },
-  terms: {
-    textAlign: 'center',
+  legalContainer: {
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+  },
+  legalText: {
     fontSize: FontSize.xs,
     color: Colors.muted,
-    marginTop: Spacing.xs,
+    marginBottom: 4,
   },
-  termsLink: {
+  legalLinksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legalLink: {
+    fontSize: FontSize.xs,
+    color: Colors.primary,
     textDecorationLine: 'underline',
+    fontWeight: '600',
+  },
+  legalDivider: {
+    fontSize: FontSize.xs,
+    color: Colors.muted,
   },
 });

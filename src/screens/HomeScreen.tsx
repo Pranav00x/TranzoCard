@@ -15,6 +15,7 @@ const actions = [
   { icon: 'download' as const, label: 'Add money' },
   { icon: 'send' as const, label: 'Send', nav: 'Send' },
   { icon: 'repeat' as const, label: 'Convert' },
+  { icon: 'refresh-cw' as const, label: 'Swap' },
 ];
 
 export default function HomeScreen({ navigation }: any) {
@@ -191,11 +192,13 @@ const styles = StyleSheet.create({
   },
   actionsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 36,
+    justifyContent: 'space-evenly',
+    alignItems: 'flex-start',
+    paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xxxl,
   },
   actionItem: {
+    flex: 1,
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -211,6 +214,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.muted,
     fontWeight: '500',
+    textAlign: 'center',
   },
   earnCard: {
     marginHorizontal: Spacing.xxl,
